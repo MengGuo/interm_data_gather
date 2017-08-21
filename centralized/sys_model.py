@@ -199,9 +199,10 @@ def construct_sys_model(N):
         sys_models.append([r_model, r_hard_task, r_soft_task])
     #--------------------
     print 'Agent model construction done in %.2f' %(time.time()-t0)
+    print '%d source robots and %d relay robots' %(N, 3*N)
     return sys_models, act_time, add_data, symbols
 
-def compose_sys_fts(sys_models, act_time, add_data, symbols, buffer_size):
+def compose_sys_fts(sys_models, act_time, add_data, symbols, buffer_size, com_rad = 5):
     #----------------------------
     print 'compose_fts starts'
     t0 = time.time()
@@ -212,9 +213,11 @@ def compose_sys_fts(sys_models, act_time, add_data, symbols, buffer_size):
     ind_nodes = []
     for k in range(0, N):
         regs = sys_models[k][0].nodes()
-        ind_nodes.append(regs)
         buf_size = buffer_size[k]
-        ind_nodes.append(range(buf_size))
+        new_s = []
+        for item in product(regs, buf_size):
+            new_s.append(item)
+        ind_nodes.append(new_s)
     #--------------------
     comp_nodes = set()
     for items in product(*ind_nodes):
@@ -223,6 +226,26 @@ def compose_sys_fts(sys_models, act_time, add_data, symbols, buffer_size):
     #------------------------------
     comp_motion = MotionFts(comp_nodes, comp_symobls, 'comp_FTS')
     # build transitions
+    for f_n in comp_nodes:
+        for t_n in comp_nodes:
+            if (f_n != t_n):
+                for i in range(0, N):
+                    f_n_i = f_n[i][0]
+                    t_n_i = t_n[i][0]
+                    fts_i = sys_modes[i][0]
+                    if (t_n_i in fts_i.successors(f_n_i)):
+                        label = fts_i.edge[f_n_i][t_n_i]['label']
+                        if label != 'goto':
+                            extra_data = add_data[label]
+                            f_d_i = f_n[i][1]
+                            t_d_i = t_n[i][1]
+                            if t_d_i == f_d_i + extra_data:
+                                e_weight = fts_i.edge[f_n_i][t_n_i]['weight']
+                                # data gather actions
+                                comp_motion.add_edge(f_n, t_n, weight=e_weight)
+                        
+                    
+                
     #------------------------------
     comp_action_dict = None
     comp_action = ActionModel(comp_action_dict)
@@ -235,7 +258,7 @@ def compose_sys_fts(sys_models, act_time, add_data, symbols, buffer_size):
 
 def compose_sys_ltl(sys_models):
     task_ltl = sys_models[0][1]
-    for k in range(1, sys_models):
+    for k in range(1, len(sys_models)):
         task_ltl = '(%s) && (%s)' %(task_ltl, sys_models[k][1])
     print 'composed ltl formula:', task_ltl
     return task_ltl

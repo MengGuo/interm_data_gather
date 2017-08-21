@@ -12,8 +12,9 @@ for k in range(len(c_buffer_size)):
     for n in range(N):
         buffer_size.append(c_buffer_size[k])
 
+com_rad = 5
 
-composed_fts = compose_sys_fts(sys_models, act_time, add_data, symbols, buffer_size)
+composed_fts = compose_sys_fts(sys_models, act_time, add_data, symbols, buffer_size, com_rad)
         
 
         
