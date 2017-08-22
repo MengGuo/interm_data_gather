@@ -200,9 +200,9 @@ def construct_sys_model(N):
     #--------------------
     print 'Agent model construction done in %.2f' %(time.time()-t0)
     print '%d source robots and %d relay robots' %(N, 3*N)
-    return sys_models, act_time, add_data, symbols
+    return sys_models, add_data, symbols
 
-def compose_sys_fts(sys_models, act_time, add_data, symbols, buffer_size, com_rad = 5):
+def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 5):
     #----------------------------
     print 'compose_fts starts'
     t0 = time.time()
@@ -219,9 +219,15 @@ def compose_sys_fts(sys_models, act_time, add_data, symbols, buffer_size, com_ra
             new_s.append(item)
         ind_nodes.append(new_s)
     #--------------------
-    comp_nodes = set()
+    comp_nodes = dict()
     for items in product(*ind_nodes):
-        comp_nodes.add(items)
+        prop = set()
+        for k in range(0, N):
+            fts = sys_models[k][0]
+            reg = items[k][0]
+            label = fts.node[reg]['label']
+            prop.union(label)
+        comp_nodes[tuple(items)] = prop
     comp_symbols = symbols
     #------------------------------
     comp_motion = MotionFts(comp_nodes, comp_symobls, 'comp_FTS')
@@ -229,20 +235,32 @@ def compose_sys_fts(sys_models, act_time, add_data, symbols, buffer_size, com_ra
     for f_n in comp_nodes:
         for t_n in comp_nodes:
             if (f_n != t_n):
+                allowed = True
+                a_weight = 0
                 for i in range(0, N):
                     f_n_i = f_n[i][0]
                     t_n_i = t_n[i][0]
                     fts_i = sys_modes[i][0]
                     if (t_n_i in fts_i.successors(f_n_i)):
                         label = fts_i.edge[f_n_i][t_n_i]['label']
-                        if label != 'goto':
+                        f_d_i = f_n[i][1]
+                        t_d_i = t_n[i][1]
+                        if (label != 'goto') and (label != 'ul'):
                             extra_data = add_data[label]
-                            f_d_i = f_n[i][1]
-                            t_d_i = t_n[i][1]
-                            if t_d_i == f_d_i + extra_data:
+                            if (t_d_i == f_d_i + extra_data):
                                 e_weight = fts_i.edge[f_n_i][t_n_i]['weight']
                                 # data gather actions
                                 comp_motion.add_edge(f_n, t_n, weight=e_weight)
+                        elif (label == 'goto'):
+                            f_d_i = f_n[i][1]
+                            t_d_i = t_n[i][1]
+                            if (t_d_i == f_d_i):
+                                e_weight = fts_i.edge[f_n_i][t_n_i]['weight']
+                                # motions
+                                comp_motion.add_edge(f_n, t_n, weight=e_weight)
+                        elif (label == 'ul'):
+                            
+                            
                         
                     
                 
