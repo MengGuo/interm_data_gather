@@ -26,7 +26,7 @@ def construct_sys_model(N):
         roadmap.add_edge(wp[0], wp[3], weight = distance(wp[0], wp[3]))
         roadmap.add_edge(wp[1], wp[2], weight = distance(wp[1], wp[2]))
         roadmap.add_edge(wp[1], wp[3], weight = distance(wp[1], wp[3]))
-        roadmap.add_edge(wp[2], wp[3], weight = distance(wp[2], wp[3]))        
+        roadmap.add_edge(wp[2], wp[3], weight = distance(wp[2], wp[3]))
     #----------
     # N c1 agents, N c2 agents, N c3 agents, N leaders
     #----------
@@ -65,10 +65,11 @@ def construct_sys_model(N):
             if nd in r_regs:
                 r_regions[nd] = r_regs[nd]
             else:
-                re_regions[nd] = set()                
-        r_motion = MotionFts(r_regions, r_symobls, '%s_FTS' %r_name)
+                r_regions[nd] = set()                
+        r_motion = MotionFts(r_regions, r_symbols, '%s_FTS' %r_name)
         r_motion.add_un_edges(roadmap.edges(), unit_cost = 1/r_linear_speed)
         r_motion.set_initial(r_init_pose)
+        
         # action fts
         add_data['g%d1'%n] = 1
         add_data['g%d2' %n] = 2
@@ -86,7 +87,8 @@ def construct_sys_model(N):
         }
         r_action = ActionModel(r_action_dict)
         r_model = MotActModel(r_motion, r_action)
-        r_hard_task = '([] <> (r%d1 && g%d1)) && ([] <> (r%d2 && g%d2)) && ([] <> (r%d3 && g%d3))' %(n,)*6
+        r_model.build_full()
+        r_hard_task = '([] <> (r%d1 && g%d1)) && ([] <> (r%d2 && g%d2)) && ([] <> (r%d3 && g%d3))' %tuple((n,)*6)
         r_soft_task = None
         sys_models.append([r_model, r_hard_task, r_soft_task])
     #----------
@@ -111,8 +113,8 @@ def construct_sys_model(N):
             if nd in r_regs:
                 r_regions[nd] = r_regs[nd]
             else:
-                re_regions[nd] = set()                
-        r_motion = MotionFts(r_regions, r_symobls, '%s_FTS' %r_name)
+                r_regions[nd] = set()                
+        r_motion = MotionFts(r_regions, r_symbols, '%s_FTS' %r_name)
         r_motion.add_un_edges(roadmap.edges(), unit_cost = 1/r_linear_speed)
         r_motion.set_initial(r_init_pose)
         # action fts
@@ -129,7 +131,8 @@ def construct_sys_model(N):
         }
         r_action = ActionModel(r_action_dict)
         r_model = MotActModel(r_motion, r_action)
-        r_hard_task = '([] <> (r%d4 && g%d4)) && ([] <> (r%d6 && g%d4)) && ([] <> (r%d5 && g%d5))' %(n,)*6
+        r_model.build_full()
+        r_hard_task = '([] <> (r%d4 && g%d4)) && ([] <> (r%d6 && g%d4)) && ([] <> (r%d5 && g%d5))' %tuple((n,)*6)
         r_soft_task = None
         sys_models.append([r_model, r_hard_task, r_soft_task])
     #----------
@@ -154,8 +157,8 @@ def construct_sys_model(N):
             if nd in r_regs:
                 r_regions[nd] = r_regs[nd]
             else:
-                re_regions[nd] = set()                
-        r_motion = MotionFts(r_regions, r_symobls, '%s_FTS' %r_name)
+                r_regions[nd] = set()                
+        r_motion = MotionFts(r_regions, r_symbols, '%s_FTS' %r_name)
         r_motion.add_un_edges(roadmap.edges(), unit_cost = 1/r_linear_speed)
         r_motion.set_initial(r_init_pose)
         # action fts
@@ -172,7 +175,8 @@ def construct_sys_model(N):
         }
         r_action = ActionModel(r_action_dict)
         r_model = MotActModel(r_motion, r_action)
-        r_hard_task = '([] <> (r%d7 && g%d6)) && ([] <> (r%d8 && g%d7)) && ([] <> (r%d9 && g%d6))' %(n,)*6
+        r_model.build_full()
+        r_hard_task = '([] <> (r%d7 && g%d6)) && ([] <> (r%d8 && g%d7)) && ([] <> (r%d9 && g%d6))' %tuple((n,)*6)
         r_soft_task = None
         sys_models.append([r_model, r_hard_task, r_soft_task])
     #----------
@@ -185,7 +189,10 @@ def construct_sys_model(N):
         r_linear_speed = A_linear_speed[n]
         r_angular_speed = A_angular_speed[n]
         # motion fts
-        r_motion = MotionFts(roadmap.nodes(), [], '%s_FTS' %r_name)
+        r_regions = {}
+        for nd in roadmap.nodes():
+            r_regions[nd] = set()                
+        r_motion = MotionFts(r_regions, [], '%s_FTS' %r_name)
         r_motion.add_un_edges(roadmap.edges(), unit_cost = 1/r_linear_speed)
         r_motion.set_initial(r_init_pose)
         # action fts
@@ -194,6 +201,7 @@ def construct_sys_model(N):
         r_action_dict = {'ul': (act_time['ul'], '1', set(['ul',]))}
         r_action = ActionModel(r_action_dict)
         r_model = MotActModel(r_motion, r_action)
+        r_model.build_full()
         r_hard_task = 'true'
         r_soft_task = None
         sys_models.append([r_model, r_hard_task, r_soft_task])
@@ -232,7 +240,7 @@ def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 1):
         comp_nodes[tuple(items)] = prop
     comp_symbols = symbols
     #------------------------------
-    comp_motion = MotionFts(comp_nodes, comp_symobls, 'comp_FTS')
+    comp_motion = MotionFts(comp_nodes, comp_symbols, 'comp_FTS')
     # build transitions
     for f_n in comp_nodes:
         # [(reg1,d1),(reg2,d2)...]
@@ -298,11 +306,13 @@ def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 1):
                 if allowed:
                     comp_motion.add_edge(f_n,t_n,weight=a_weight)
     #------------------------------
-    comp_action_dict = None
+    comp_action_dict = dict()
     comp_action = ActionModel(comp_action_dict)
     comp_fts = MotActModel(comp_motion, comp_action)
-    print 'Composed fts done in %.2f' %(time.time()-t0)
-    print 'Composed fts: nodes %d, edges %d' %(len(),len())
+    print '----------'
+    print 'comp_fts generated in %.2f' %(time.time()-t0)
+    print 'Composed fts: nodes %d, edges %d' %(len(comp_fts.nodes()),len(comp_fts.edges()))
+    print '----------'
     return comp_fts
         
         
