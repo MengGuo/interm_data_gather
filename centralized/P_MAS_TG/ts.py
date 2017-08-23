@@ -31,7 +31,7 @@ class MotionFts(DiGraph):
         for node in self.nodes_iter():
             #self.add_edge(node, node, weight=unit_cost)
             # allow self-transit to 0-cost
-            self.add_edge(node, node, weight=0)
+            self.add_edge(node, node, weight=0.01)
 
     def add_full_edges(self,unit_cost=1):
         for f_node in self.nodes_iter():

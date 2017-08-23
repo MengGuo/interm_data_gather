@@ -1,4 +1,4 @@
-from P_MAS_TG.ts import MotionFts, ActionModel, MotActModel
+from P_MAS_TG.ts import MotionFts, ActionModel, MotActModel, distance
 
 import networkx
 from networkx import shortest_path, has_path, shortest_path_length
@@ -202,7 +202,7 @@ def construct_sys_model(N):
     print '%d source robots and %d relay robots' %(N, 3*N)
     return sys_models, add_data, symbols
 
-def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 5):
+def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 1):
     #----------------------------
     print 'compose_fts starts'
     t0 = time.time()
@@ -210,12 +210,14 @@ def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 5):
     nodes = set()
     # construct nodes
     N = len(sys_models)
+    N_f = int(round(0.75*N))
     ind_nodes = []
     for k in range(0, N):
         regs = sys_models[k][0].nodes()
-        buf_size = buffer_size[k]
+        bufs = range(buffer_size[k]+1)
         new_s = []
-        for item in product(regs, buf_size):
+        for item in product(regs, bufs):
+            # (reg,d)
             new_s.append(item)
         ind_nodes.append(new_s)
     #--------------------
@@ -233,6 +235,7 @@ def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 5):
     comp_motion = MotionFts(comp_nodes, comp_symobls, 'comp_FTS')
     # build transitions
     for f_n in comp_nodes:
+        # [(reg1,d1),(reg2,d2)...]
         for t_n in comp_nodes:
             if (f_n != t_n):
                 allowed = True
@@ -249,21 +252,51 @@ def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 5):
                             extra_data = add_data[label]
                             if (t_d_i == f_d_i + extra_data):
                                 e_weight = fts_i.edge[f_n_i][t_n_i]['weight']
+                                if e_weight > a_weight:
+                                    a_weight = e_weight
+                            else:
+                                allowed = False
+                                break
                                 # data gather actions
-                                comp_motion.add_edge(f_n, t_n, weight=e_weight)
                         elif (label == 'goto'):
-                            f_d_i = f_n[i][1]
-                            t_d_i = t_n[i][1]
-                            if (t_d_i == f_d_i):
+                            one_ul = False
+                            for j in range(N_f, N):
+                                if f_n[j][0] == t_n[j][0]:
+                                    one_ul = True
+                                    break
+                            if ((t_d_i == f_d_i)
+                                or ((t_d_i != f_d_i) and (t_d_i == 0) and (one_ul) and (i in range(0, N_f)))):
                                 e_weight = fts_i.edge[f_n_i][t_n_i]['weight']
-                                # motions
-                                comp_motion.add_edge(f_n, t_n, weight=e_weight)
+                                if e_weight > a_weight:
+                                    a_weight = e_weight
+                            else:
+                                allowed = False
+                                break
                         elif (label == 'ul'):
-                            
-                            
-                        
-                    
-                
+                            t_reg_i = t_n_i[0]
+                            all_empty = True
+                            for j in range(0, N_f):
+                                t_reg_j = t_n[j][0][0]
+                                t_d_j = t_n[j][1]
+                                f_d_j = f_n[j][1]
+                                if distance(t_reg_i, t_reg_j) <= com_rad:
+                                    if t_d_j != 0:
+                                        all_empty = False
+                                elif distance(t_reg_i, t_reg_j) > com_rad:
+                                    if t_d_j != f_d_j:
+                                        all_empty = False
+                            if ((all_empty) and (t_d_i == 0)):
+                                e_weight = fts_i.edge[f_n_i][t_n_i]['weight']
+                                if e_weight > a_weight:
+                                    a_weight = e_weight
+                            else:
+                                 allowed = False
+                                 break
+                    else:
+                        allowed = False
+                        break
+                if allowed:
+                    comp_motion.add_edge(f_n,t_n,weight=a_weight)
     #------------------------------
     comp_action_dict = None
     comp_action = ActionModel(comp_action_dict)
@@ -282,4 +315,3 @@ def compose_sys_ltl(sys_models):
     return task_ltl
 
     
-
