@@ -13,20 +13,35 @@ import time
 #----------------------------
 def construct_sys_model(N):
     #----------------------------
-    print 'construct_agent_model starts'
+    print 'Construct_agent_model starts'
     t0 = time.time()
     sys_models = []
     #----------
     [ws, tris, wps] = pickle.load(open('ws_model.p','rb'))
     # --- construct roadmap as fts ---    
-    roadmap = networkx.Graph()    
-    for wp in wps:
-        roadmap.add_edge(wp[0], wp[1], weight = distance(wp[0], wp[1]))
-        roadmap.add_edge(wp[0], wp[2], weight = distance(wp[0], wp[2]))
-        roadmap.add_edge(wp[0], wp[3], weight = distance(wp[0], wp[3]))
-        roadmap.add_edge(wp[1], wp[2], weight = distance(wp[1], wp[2]))
-        roadmap.add_edge(wp[1], wp[3], weight = distance(wp[1], wp[3]))
-        roadmap.add_edge(wp[2], wp[3], weight = distance(wp[2], wp[3]))
+    roadmap = networkx.Graph()
+    # --- use only center point, to reduce the number of nodes
+    wpc = dict()
+    print 'wps number', len(wps)
+    for k,wp in enumerate(wps):
+        roadmap.add_node(wp[0])
+        wpc[wp[0]] = k
+    for f_n in roadmap.nodes():
+        for t_n in roadmap.nodes():
+            if f_n != t_n:
+                f_k = wpc[f_n]
+                t_k = wpc[t_n]
+                f_s = set(wps[f_k])
+                t_s = set(wps[t_k])
+                if f_s.intersection(t_s):
+                    roadmap.add_edge(f_n, t_n, weight = distance(f_n, t_n))
+    # for wp in wps:
+    #     roadmap.add_edge(wp[0], wp[1], weight = distance(wp[0], wp[1]))
+    #     roadmap.add_edge(wp[0], wp[2], weight = distance(wp[0], wp[2]))
+    #     roadmap.add_edge(wp[0], wp[3], weight = distance(wp[0], wp[3]))
+        # roadmap.add_edge(wp[1], wp[2], weight = distance(wp[1], wp[2]))
+        # roadmap.add_edge(wp[1], wp[3], weight = distance(wp[1], wp[3]))
+        # roadmap.add_edge(wp[2], wp[3], weight = distance(wp[2], wp[3]))
     #----------
     # N c1 agents, N c2 agents, N c3 agents, N leaders
     #----------
