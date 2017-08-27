@@ -35,6 +35,7 @@ def construct_sys_model(N):
                 t_s = set(wps[t_k])
                 if f_s.intersection(t_s):
                     roadmap.add_edge(f_n, t_n, weight = distance(f_n, t_n))
+    # if complete wps are used
     # for wp in wps:
     #     roadmap.add_edge(wp[0], wp[1], weight = distance(wp[0], wp[1]))
     #     roadmap.add_edge(wp[0], wp[2], weight = distance(wp[0], wp[2]))
@@ -225,6 +226,184 @@ def construct_sys_model(N):
     print '%d source robots and %d relay robots' %(N, 3*N)
     return sys_models, add_data, symbols
 
+#----------------------------
+#----------------------------
+def construct_sys_model_small(N):
+    #----------------------------
+    print 'Construct_agent_model_small starts'
+    t0 = time.time()
+    sys_models = []
+    #---------- load simplified roadmap
+    [c1_paths, c2_paths, c3_paths, l_paths] = pickle.load(open('simp_ts.p','rb'))
+    #---------- 
+    # N c1 agents, N c2 agents, N c3 agents, N leaders
+    #----------
+    A_start_pose = [(5.666666666666667, 5.0),
+                  (4.666666666666667, 4.333333333333333),
+                  (6.5, 6.666666666666667),
+                  (5.666666666666667, 5.0),
+                  (4.666666666666667, 4.333333333333333),
+                  (6.5, 6.666666666666667)]
+    A_linear_speed = [ 0.45, 0.65, 1.35, 0.45, 0.65, 1.35] #m/s
+    A_angular_speed = [ 0.75, 0.9, 1.05, 0.75, 0.9, 1.05] #rad/s
+    COST = 1
+    #----------
+    add_data = {}
+    act_time = {}
+    symbols = []
+    l_regions = set()
+    #----------
+    #----------
+    #----------
+    # group ---**c1**---
+    for n in range(0, N):
+        r_name  = 'a1%d' %n
+        r_init_pose = A_start_pose[n]
+        r_linear_speed = A_linear_speed[n]
+        r_angular_speed = A_angular_speed[n]
+        # motion fts
+        r_symbols = ['r%d0' %n, 'r%d1' %n, 'r%d2' %n, 'r%d3' %n]
+        symbols.append(r_symbols)
+        r_regs = {r_init_pose: set([r_symbols[0],]),
+                  (6.666666666666667, 9.5): set([r_symbols[1],]),
+                  (1.0, 8.833333333333334): set([r_symbols[2],]),
+                  (9.333333333333334, 9.0): set([r_symbols[3],]),
+        }
+        r_motion = MotionFts(r_regs, r_symbols, '%s_FTS' %r_name)
+        l_regions.update(set(r_regs.keys()))
+        for pair, route in c1_paths.iteritems():
+            if pair[0] in r_regs.keys():
+                if pair[1] in r_regs.keys():
+                    r_motion.add_edge(pair[0], pair[1], weight = route[1]/r_linear_speed)
+        r_motion.set_initial(r_init_pose)
+        
+        # action fts
+        add_data['g%d1'%n] = 2
+
+        act_time['g%d1'%n] = 2*COST
+        symbols.append(['g%d1'%n,])
+
+        r_action_dict = {
+            'g%d1'%n: (act_time['g%d1'%n], '1', set(['g%d1'%n,])),        
+        }
+        r_action = ActionModel(r_action_dict)
+        r_model = MotActModel(r_motion, r_action)
+        r_model.build_full()
+        r_hard_task = '([] <> (r%d1 && g%d1)) && ([] <> (r%d2 && g%d1)) && ([] <> (r%d3 && g%d1))' %tuple((n,)*6)
+        r_soft_task = None
+        sys_models.append([r_model, r_hard_task, r_soft_task])
+    #----------
+    #----------
+    #----------
+    # group ---**c2**---
+    for n in range(0, N):
+        r_name  = 'a2%d' %n
+        r_init_pose = A_start_pose[n]
+        r_linear_speed = A_linear_speed[n]
+        r_angular_speed = A_angular_speed[n]
+        # motion fts
+        r_symbols = ['r%d0' %n, 'r%d4' %n, 'r%d5' %n, 'r%d6' %n]
+        symbols.append(r_symbols)
+        r_regs = {r_init_pose: set([r_symbols[0],]),
+                  (9.666666666666666, 6.0): set([r_symbols[1],]),
+                (8.666666666666666, 1.1666666666666667): set([r_symbols[2],]),
+                  (4.666666666666667, 0.5): set([r_symbols[3],]),
+        }
+        r_motion = MotionFts(r_regs, r_symbols, '%s_FTS' %r_name)
+        l_regions.update(set(r_regs.keys()))
+        for pair, route in c2_paths.iteritems():
+            if pair[0] in r_regs.keys():
+                if pair[1] in r_regs.keys():
+                    r_motion.add_edge(pair[0], pair[1], weight = route[1]/r_linear_speed)
+        r_motion.set_initial(r_init_pose)
+        # action fts
+        add_data['g%d4'%n] = 2
+        act_time['g%d4'%n] = COST
+        symbols.append(['g%d4'%n,])
+
+        r_action_dict = {
+            'g%d4'%n: (act_time['g%d4'%n], '1', set(['g%d4'%n,])),
+        }
+        r_action = ActionModel(r_action_dict)
+        r_model = MotActModel(r_motion, r_action)
+        r_model.build_full()
+        r_hard_task = '([] <> (r%d4 && g%d4)) && ([] <> (r%d6 && g%d4)) && ([] <> (r%d5 && g%d4))' %tuple((n,)*6)
+        r_soft_task = None
+        sys_models.append([r_model, r_hard_task, r_soft_task])
+    #----------
+    #----------
+    #----------
+    # group ---**c3**---
+    for n in range(0, N):
+        r_name  = 'a3%d' %n
+        r_init_pose = A_start_pose[n]
+        r_linear_speed = A_linear_speed[n]
+        r_angular_speed = A_angular_speed[n]
+        # motion fts
+        r_symbols = ['r%d0' %n, 'r%d7' %n, 'r%d8' %n, 'r%d9' %n]
+        symbols.append(r_symbols)
+        r_regs = {r_init_pose: set([r_symbols[0],]),
+                  (0.3333333333333333, 5.666666666666667): set([r_symbols[1],]),
+                (1.0, 3.3333333333333335): set([r_symbols[2],]),
+                (4.333333333333333, 2.3333333333333335): set([r_symbols[3],]),
+        }
+        r_motion = MotionFts(r_regs, r_symbols, '%s_FTS' %r_name)
+        l_regions.update(set(r_regs.keys()))
+        for pair, route in c3_paths.iteritems():
+            if pair[0] in r_regs.keys():
+                if pair[1] in r_regs.keys():
+                    r_motion.add_edge(pair[0], pair[1], weight = route[1]/r_linear_speed)
+        r_motion.set_initial(r_init_pose)
+        # action fts
+        add_data['g%d6'%n] = 2
+        
+        act_time['g%d6'%n] = COST
+        symbols.append(['g%d6'%n, ])
+
+        r_action_dict = {
+            'g%d6'%n: (act_time['g%d6'%n], '1', set(['g%d6'%n,])),
+        }
+        r_action = ActionModel(r_action_dict)
+        r_model = MotActModel(r_motion, r_action)
+        r_model.build_full()
+        r_hard_task = '([] <> (r%d7 && g%d6)) && ([] <> (r%d8 && g%d6)) && ([] <> (r%d9 && g%d6))' %tuple((n,)*6)
+        r_soft_task = None
+        sys_models.append([r_model, r_hard_task, r_soft_task])
+    #----------
+    #----------
+    #----------
+    # group ---**leader**---
+    for n in range(0, N):
+        r_name  = 'l%d' %n
+        r_init_pose = A_start_pose[n]
+        r_linear_speed = A_linear_speed[n]
+        r_angular_speed = A_angular_speed[n]
+        # motion fts
+        r_regs = dict()
+        for nd in l_regions:
+            r_regs[nd] = set()                
+        r_motion = MotionFts(r_regs, [], '%s_FTS' %r_name)
+        for pair, route in l_paths.iteritems():
+            if pair[0] in r_regs.keys():
+                if pair[1] in r_regs.keys():
+                    r_motion.add_edge(pair[0], pair[1], weight = route[1]/r_linear_speed)
+        r_motion.set_initial(r_init_pose)
+        # action fts
+        act_time['ul'] = COST
+        symbols.append(['ul',])
+        r_action_dict = {'ul': (act_time['ul'], '1', set(['ul',]))}
+        r_action = ActionModel(r_action_dict)
+        r_model = MotActModel(r_motion, r_action)
+        r_model.build_full()
+        r_hard_task = 'true'
+        r_soft_task = None
+        sys_models.append([r_model, r_hard_task, r_soft_task])
+    #--------------------
+    print 'Agent model construction done in %.2f' %(time.time()-t0)
+    print '%d source robots and %d relay robots' %(N, 3*N)
+    return sys_models, add_data, symbols
+
+
 def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 1):
     #----------------------------
     print 'compose_fts starts'
@@ -251,7 +430,7 @@ def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 1):
             fts = sys_models[k][0]
             reg = items[k][0]
             label = fts.node[reg]['label']
-            prop.union(label)
+            prop.update(label)
         comp_nodes[tuple(items)] = prop
     comp_symbols = symbols
     #------------------------------

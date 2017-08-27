@@ -1,6 +1,6 @@
 from P_MAS_TG.planner import ltl_planner
 
-from sys_model import construct_sys_model, compose_sys_ltl, compose_sys_fts
+from sys_model import construct_sys_model, construct_sys_model_small, compose_sys_ltl, compose_sys_fts
 
 import time
 
@@ -8,7 +8,8 @@ import time
 t0 = time.time()
 N = 1
 
-sys_models, add_data, symbols = construct_sys_model(N)
+#sys_models, add_data, symbols = construct_sys_model(N)
+sys_models, add_data, symbols = construct_sys_model_small(N)
 print 'System models built in %.2f' %(time.time()-t0)
 
 c_buffer_size = [5,5,5,1]

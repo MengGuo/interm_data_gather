@@ -3,8 +3,14 @@ from networkx import shortest_path, has_path, shortest_path_length
 
 from itertools import product
 
+from math import sqrt
+
 import pickle
 import time
+
+
+def distance(pose1, pose2):
+    return (sqrt((pose1[0]-pose2[0])**2+(pose1[1]-pose2[1])**2)+0.001)
 
 
 def shortest_path_exclude(G, s, g, exclude):
@@ -55,19 +61,63 @@ if __name__ == "__main__":
                 path, length = shortest_path_exclude(roadmap, p1, p2, exclude)
                 if path:
                     c1_paths[(p1, p2)] = [path, length]
-    a11_init_pose = c1_init_pose[0]
-    a11_linear_speed = c1_linear_speed[0]
-    a11_angular_speed = c1_angular_speed[0]
-    a11_symbols = c1_symbols[:]
-    a11_regions = c1_regions.copy()
-    del a11_regions[c1_init_pose[2]]
-    del a11_regions[c1_init_pose[1]]
-    a11_motion = MotionFts(a11_regions, a11_symbols, 'a11_FTS')
-    # ---construct motion fts ---
-    for pair, route in c1_paths.iteritems():
-        if pair[0] in a11_regions:
-            if pair[1] in a11_regions:
-                a11_motion.add_edge(pair[0], pair[1], weight = route[1]/a11_linear_speed, path = route[0])
-    a11_motion.set_initial(a11_init_pose)
-    
+
+    # ----- c2 motion ----
+    c2_init_pose = [(5.666666666666667, 5.0), (6.5, 6.666666666666667),  (4.666666666666667, 4.333333333333333)]
+    c2_symbols = ['r4', 'r5', 'r6']
+    c2_regions = {(9.666666666666666, 6.0): set(['r4',]),
+                  (8.666666666666666, 1.1666666666666667): set(['r5',]),
+                  (4.666666666666667, 0.5): set(['r6',]),
+                  c2_init_pose[0]: set(['r0',]),
+                  c2_init_pose[1]: set(['r0',]),
+                  c2_init_pose[2]: set(['r0',]),              
+                  }
+    c2_rs = set(c2_regions.keys())
+    for init in c2_init_pose:
+        c2_rs.remove(init)
+    c2_paths = dict()
+    for p1 in c2_regions.iterkeys():
+        exclude = c2_rs
+        exclude.discard(p1)
+        for p2 in c2_regions.iterkeys():
+            if p1 != p2:
+                exclude.discard(p2)
+                path, length = shortest_path_exclude(roadmap, p1, p2, exclude)
+                if path:
+                    c2_paths[(p1, p2)] = [path, length]
+    # ----- c3 motion ----
+    c3_init_pose = [(6.5, 6.666666666666667), (5.666666666666667, 5.0), (4.666666666666667, 4.333333333333333)]
+    c3_symbols = ['r7', 'r8', 'r9']
+    c3_regions = {(0.3333333333333333, 5.666666666666667): set(['r7',]),
+                  (1.0, 3.3333333333333335): set(['r8',]),
+                  (4.333333333333333, 2.3333333333333335): set(['r9',]),              
+                  c3_init_pose[0]: set(['r0',]),
+                  c3_init_pose[1]: set(['r0',]),
+                  c3_init_pose[2]: set(['r0',]),              
+                  }
+    c3_rs = set(c3_regions.keys())
+    for init in c3_init_pose:
+        c3_rs.remove(init)
+    c3_paths = dict()
+    for p1 in c3_regions.iterkeys():
+        exclude = c3_rs
+        exclude.discard(p1)
+        for p2 in c3_regions.iterkeys():
+            if p1 != p2:
+                exclude.discard(p2)
+                path, length = shortest_path_exclude(roadmap, p1, p2, exclude)
+                if path:
+                    c3_paths[(p1, p2)] = [path, length]
+    #-------------------- l motion
+    l_paths = dict()
+    for p,l in c1_paths.iteritems():
+        l_paths[p] = l
+    for p,l in c2_paths.iteritems():
+        l_paths[p] = l
+    for p,l in c3_paths.iteritems():
+        l_paths[p] = l    
+    #
+    print 'Simplified roadmap construction done in %.2f' %(time.time()-t0)
+    pickle.dump([c1_paths, c2_paths, c3_paths, l_paths], open('simp_ts.p','wb'))
+    print 'Simplified roadmap saved to simp_ts.p'
 
