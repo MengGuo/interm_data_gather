@@ -11,6 +11,7 @@ N = 1
 #sys_models, add_data, symbols = construct_sys_model(N)
 sys_models, add_data, symbols = construct_sys_model_small(N)
 print 'System models built in %.2f' %(time.time()-t0)
+print '===================='
 
 c_buffer_size = [5,5,5,1]
 buffer_size = []
@@ -23,16 +24,20 @@ com_rad = 1
 t0 = time.time()
 composed_fts = compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad)
 print 'Composed fts done in %.2f' %(time.time()-t0)
+print '===================='
 
 # t0 = time.time()
 # composed_task = compose_sys_ltl(sys_models)
 # print 'Composed task done in %.2f' %(time.time()-t0)
+# print '===================='
 
 # t0 = time.time()
 # composed_planner = ltl_planner(composed_fts, composed_task, None)
 # print 'Composed planner initialized  in %.2f' %(time.time()-t0)
+# print '===================='
 
 # t0 = time.time()
 # composed_planner.optimal(style='ready')
 # print 'Optimal plan found in %.2f' %(time.time()-t0)
+# print '===================='
 
