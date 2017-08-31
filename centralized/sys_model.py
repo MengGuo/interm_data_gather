@@ -445,7 +445,7 @@ def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 1):
                 for i in range(0, N):
                     f_n_i = f_n[i][0]
                     t_n_i = t_n[i][0]
-                    fts_i = sys_modes[i][0]
+                    fts_i = sys_models[i][0]
                     if (t_n_i in fts_i.successors(f_n_i)):
                         label = fts_i.edge[f_n_i][t_n_i]['label']
                         f_d_i = f_n[i][1]
