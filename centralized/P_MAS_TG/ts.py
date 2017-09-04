@@ -29,7 +29,7 @@ class MotionFts(DiGraph):
             self.add_edge(f_node, t_node, weight=dist*unit_cost)
             self.add_edge(t_node, f_node, weight=dist*unit_cost)
         for node in self.nodes_iter():
-            #self.add_edge(node, node, weight=unit_cost)
+            # self.add_edge(node, node, weight=unit_cost)
             # allow self-transit to 0-cost
             self.add_edge(node, node, weight=0.01)
 
@@ -106,6 +106,7 @@ class ActionModel(object):
 class MotActModel(DiGraph):
     def __init__(self, mot_fts, act_model):
         DiGraph.__init__(self, region=mot_fts, action=act_model, initial=set(), type='MotActModel')
+        self.build_full()
 
     def composition(self, reg, act):
         prod_node = (reg, act)
@@ -126,6 +127,7 @@ class MotActModel(DiGraph):
             init_prod_node = self.composition(reg_init, 'None')
 
     def build_full(self):
+        self.build_initial()
         for reg in self.graph['region'].nodes_iter():
             for act in self.graph['action'].action.iterkeys():
                 prod_node = self.composition(reg, act)

@@ -32,6 +32,8 @@ def dijkstra_plan_networkX(product, beta=10):
                                 suffix = compute_path_from_pre(loop_pre, opti_pred)
                                 loop[prod_target] = (cycle[opti_pred], suffix)
 	# shortest line
+        if not product.graph['initial']:
+                print 'Initial set empty'
 	for prod_init in product.graph['initial']:
                 line = {}
 		line_pre, line_dist = dijkstra_predecessor_and_distance(product, prod_init)

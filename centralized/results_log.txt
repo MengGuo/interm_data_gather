@@ -1,0 +1,60 @@
+******************************
+1 source and 1 relay
+******************************
+python synthesis.py 
+Construct_agent_model_small starts
+full_model constructed with 8 states and 32 transitions
+full_model constructed with 8 states and 32 transitions
+Agent model construction done in 0.01
+1 source robots and 1 relay robots
+System models built in 0.01
+====================
+compose_fts starts
+Composed motion: nodes 640, edges 9472
+full_model constructed with 640 states and 10112 transitions
+----------
+comp_fts generated in 1.54
+Composed fts: nodes 640, edges 10112
+----------
+Composed fts done in 1.55
+====================
+composed ltl formula: (([] <> (r01 && g01)) && ([] <> (r02 && g01)) && ([] <> (r03 && g01))) && (true)
+Composed task done in 0.00
+====================
+full Buchi constructed with 4 states and 13 transitions
+Composed planner initialized  in 0.01
+====================
+full product constructed with 2560 states and 44608 transitions
+==================
+Dijkstra_plan_networkX done within 10.90s: precost 55.48, sufcost 54.65
+Optimal plan found in 11.56
+******************************
+1 source and 2 relays
+******************************
+Construct_agent_model_small starts
+full_model constructed with 8 states and 32 transitions
+full_model constructed with 8 states and 32 transitions
+full_model constructed with 14 states and 62 transitions
+Agent model construction done in 0.01
+1 source robots and 3 relay robots
+System models built in 0.01
+====================
+compose_fts starts
+Composed motion: nodes 44800, edges 2810240
+full_model constructed with 44800 states and 2855040 transitions
+----------
+comp_fts generated in 7726.83
+Composed fts: nodes 44800, edges 2855040
+----------
+Composed fts done in 7729.26
+====================
+composed ltl formula: ((([] <> (r01 && g01)) && ([] <> (r02 && g01)) && ([] <> (r03 && g01))) && (([] <> (r04 && g04)) && ([] <> (r06 && g04)) && ([] <> (r05 && g04)))) && (true)
+Composed task done in 0.00
+====================
+full Buchi constructed with 7 states and 34 transitions
+Composed planner initialized  in 0.08
+====================
+full product constructed with 313600 states and 22014480 transitions
+Segmentation fault: 11
+
+

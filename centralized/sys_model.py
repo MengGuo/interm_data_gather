@@ -5,6 +5,8 @@ from networkx import shortest_path, has_path, shortest_path_length
 
 from itertools import product
 
+from math import floor
+
 import pickle
 import time
 
@@ -103,7 +105,6 @@ def construct_sys_model(N):
         }
         r_action = ActionModel(r_action_dict)
         r_model = MotActModel(r_motion, r_action)
-        r_model.build_full()
         r_hard_task = '([] <> (r%d1 && g%d1)) && ([] <> (r%d2 && g%d2)) && ([] <> (r%d3 && g%d3))' %tuple((n,)*6)
         r_soft_task = None
         sys_models.append([r_model, r_hard_task, r_soft_task])
@@ -147,7 +148,6 @@ def construct_sys_model(N):
         }
         r_action = ActionModel(r_action_dict)
         r_model = MotActModel(r_motion, r_action)
-        r_model.build_full()
         r_hard_task = '([] <> (r%d4 && g%d4)) && ([] <> (r%d6 && g%d4)) && ([] <> (r%d5 && g%d5))' %tuple((n,)*6)
         r_soft_task = None
         sys_models.append([r_model, r_hard_task, r_soft_task])
@@ -191,7 +191,6 @@ def construct_sys_model(N):
         }
         r_action = ActionModel(r_action_dict)
         r_model = MotActModel(r_motion, r_action)
-        r_model.build_full()
         r_hard_task = '([] <> (r%d7 && g%d6)) && ([] <> (r%d8 && g%d7)) && ([] <> (r%d9 && g%d6))' %tuple((n,)*6)
         r_soft_task = None
         sys_models.append([r_model, r_hard_task, r_soft_task])
@@ -217,7 +216,6 @@ def construct_sys_model(N):
         r_action_dict = {'ul': (act_time['ul'], '1', set(['ul',]))}
         r_action = ActionModel(r_action_dict)
         r_model = MotActModel(r_motion, r_action)
-        r_model.build_full()
         r_hard_task = 'true'
         r_soft_task = None
         sys_models.append([r_model, r_hard_task, r_soft_task])
@@ -288,7 +286,6 @@ def construct_sys_model_small(N):
         }
         r_action = ActionModel(r_action_dict)
         r_model = MotActModel(r_motion, r_action)
-        r_model.build_full()
         r_hard_task = '([] <> (r%d1 && g%d1)) && ([] <> (r%d2 && g%d1)) && ([] <> (r%d3 && g%d1))' %tuple((n,)*6)
         r_soft_task = None
         sys_models.append([r_model, r_hard_task, r_soft_task])
@@ -326,49 +323,47 @@ def construct_sys_model_small(N):
         }
         r_action = ActionModel(r_action_dict)
         r_model = MotActModel(r_motion, r_action)
-        r_model.build_full()
         r_hard_task = '([] <> (r%d4 && g%d4)) && ([] <> (r%d6 && g%d4)) && ([] <> (r%d5 && g%d4))' %tuple((n,)*6)
         r_soft_task = None
         sys_models.append([r_model, r_hard_task, r_soft_task])
-    #----------
-    #----------
-    #----------
-    # group ---**c3**---
-    for n in range(0, N):
-        r_name  = 'a3%d' %n
-        r_init_pose = A_start_pose[n]
-        r_linear_speed = A_linear_speed[n]
-        r_angular_speed = A_angular_speed[n]
-        # motion fts
-        r_symbols = ['r%d0' %n, 'r%d7' %n, 'r%d8' %n, 'r%d9' %n]
-        symbols.append(r_symbols)
-        r_regs = {r_init_pose: set([r_symbols[0],]),
-                  (0.3333333333333333, 5.666666666666667): set([r_symbols[1],]),
-                (1.0, 3.3333333333333335): set([r_symbols[2],]),
-                (4.333333333333333, 2.3333333333333335): set([r_symbols[3],]),
-        }
-        r_motion = MotionFts(r_regs, r_symbols, '%s_FTS' %r_name)
-        l_regions.update(set(r_regs.keys()))
-        for pair, route in c3_paths.iteritems():
-            if pair[0] in r_regs.keys():
-                if pair[1] in r_regs.keys():
-                    r_motion.add_edge(pair[0], pair[1], weight = route[1]/r_linear_speed)
-        r_motion.set_initial(r_init_pose)
-        # action fts
-        add_data['g%d6'%n] = 2
+    # #----------
+    # #----------
+    # #----------
+    # # group ---**c3**---
+    # for n in range(0, N):
+    #     r_name  = 'a3%d' %n
+    #     r_init_pose = A_start_pose[n]
+    #     r_linear_speed = A_linear_speed[n]
+    #     r_angular_speed = A_angular_speed[n]
+    #     # motion fts
+    #     r_symbols = ['r%d0' %n, 'r%d7' %n, 'r%d8' %n, 'r%d9' %n]
+    #     symbols.append(r_symbols)
+    #     r_regs = {r_init_pose: set([r_symbols[0],]),
+    #               (0.3333333333333333, 5.666666666666667): set([r_symbols[1],]),
+    #             (1.0, 3.3333333333333335): set([r_symbols[2],]),
+    #             (4.333333333333333, 2.3333333333333335): set([r_symbols[3],]),
+    #     }
+    #     r_motion = MotionFts(r_regs, r_symbols, '%s_FTS' %r_name)
+    #     l_regions.update(set(r_regs.keys()))
+    #     for pair, route in c3_paths.iteritems():
+    #         if pair[0] in r_regs.keys():
+    #             if pair[1] in r_regs.keys():
+    #                 r_motion.add_edge(pair[0], pair[1], weight = route[1]/r_linear_speed)
+    #     r_motion.set_initial(r_init_pose)
+    #     # action fts
+    #     add_data['g%d6'%n] = 2
         
-        act_time['g%d6'%n] = COST
-        symbols.append(['g%d6'%n, ])
+    #     act_time['g%d6'%n] = COST
+    #     symbols.append(['g%d6'%n, ])
 
-        r_action_dict = {
-            'g%d6'%n: (act_time['g%d6'%n], '1', set(['g%d6'%n,])),
-        }
-        r_action = ActionModel(r_action_dict)
-        r_model = MotActModel(r_motion, r_action)
-        r_model.build_full()
-        r_hard_task = '([] <> (r%d7 && g%d6)) && ([] <> (r%d8 && g%d6)) && ([] <> (r%d9 && g%d6))' %tuple((n,)*6)
-        r_soft_task = None
-        sys_models.append([r_model, r_hard_task, r_soft_task])
+    #     r_action_dict = {
+    #         'g%d6'%n: (act_time['g%d6'%n], '1', set(['g%d6'%n,])),
+    #     }
+    #     r_action = ActionModel(r_action_dict)
+    #     r_model = MotActModel(r_motion, r_action)
+    #     r_hard_task = '([] <> (r%d7 && g%d6)) && ([] <> (r%d8 && g%d6)) && ([] <> (r%d9 && g%d6))' %tuple((n,)*6)
+    #     r_soft_task = None
+    #     sys_models.append([r_model, r_hard_task, r_soft_task])
     #----------
     #----------
     #----------
@@ -389,12 +384,12 @@ def construct_sys_model_small(N):
                     r_motion.add_edge(pair[0], pair[1], weight = route[1]/r_linear_speed)
         r_motion.set_initial(r_init_pose)
         # action fts
+        add_data['ul'] = 0
         act_time['ul'] = COST
         symbols.append(['ul',])
         r_action_dict = {'ul': (act_time['ul'], '1', set(['ul',]))}
         r_action = ActionModel(r_action_dict)
         r_model = MotActModel(r_motion, r_action)
-        r_model.build_full()
         r_hard_task = 'true'
         r_soft_task = None
         sys_models.append([r_model, r_hard_task, r_soft_task])
@@ -412,7 +407,7 @@ def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 1):
     nodes = set()
     # construct nodes
     N = len(sys_models)
-    N_f = int(round(0.75*N))
+    N_f = int(floor(0.75*N))
     ind_nodes = []
     for k in range(0, N):
         regs = sys_models[k][0].nodes()
@@ -433,6 +428,7 @@ def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 1):
             prop.update(label)
         comp_nodes[tuple(items)] = prop
     comp_symbols = symbols
+    # print comp_nodes
     #------------------------------
     comp_motion = MotionFts(comp_nodes, comp_symbols, 'comp_FTS')
     # build transitions
@@ -463,7 +459,7 @@ def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 1):
                         elif (label == 'goto'):
                             one_ul = False
                             for j in range(N_f, N):
-                                if f_n[j][0] == t_n[j][0]:
+                                if t_n[j][0][1] == 'ul':
                                     one_ul = True
                                     break
                             if ((t_d_i == f_d_i)
@@ -499,6 +495,16 @@ def compose_sys_fts(sys_models, add_data, symbols, buffer_size, com_rad = 1):
                         break
                 if allowed:
                     comp_motion.add_edge(f_n,t_n,weight=a_weight)
+    print 'Composed motion: nodes %d, edges %d' %(len(comp_motion.nodes()),len(comp_motion.edges()))
+    # for e in comp_motion.edges():
+        #if (e[1][0][0][0] == e[1][1][0][0]) and (e[1][1][0][1] == 'ul'):
+        # if (e[0][1][0][1] == 'ul') and (e[0][0][1] == e[0][1][1] == 0):
+        #     print e
+    init_node = []
+    for k in range(0, N):
+        for nd in sys_models[k][0].graph['initial']:
+            init_node.append((nd, 0))
+    comp_motion.graph['initial'] = set([tuple(init_node)])
     #------------------------------
     comp_action_dict = dict()
     comp_action = ActionModel(comp_action_dict)
