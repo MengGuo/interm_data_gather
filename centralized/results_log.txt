@@ -36,7 +36,7 @@ full_model constructed with 8 states and 32 transitions
 full_model constructed with 8 states and 32 transitions
 full_model constructed with 14 states and 62 transitions
 Agent model construction done in 0.01
-1 source robots and 3 relay robots
+1 source robots and 2 relay robots
 System models built in 0.01
 ====================
 compose_fts starts
