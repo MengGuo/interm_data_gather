@@ -2,7 +2,7 @@
 from buchi import mission_to_buchi
 from product import ProdAut
 from ts import distance, reach_waypoint
-from discrete_plan import dijkstra_plan_networkX, dijkstra_plan_optimal, improve_plan_given_history
+from discrete_plan import dijkstra_plan_networkX, dijkstra_plan_optimal, improve_plan_given_history, dijkstra_plan_networkX_suffix
 
 
 class ltl_planner(object):
@@ -27,7 +27,8 @@ class ltl_planner(object):
 			self.run, plantime = dijkstra_plan_networkX(self.product, self.beta)
 		elif style == 'ready':
 			self.product.build_full()
-			self.run, plantime = dijkstra_plan_networkX(self.product, self.beta)
+			#self.run, plantime = dijkstra_plan_networkX(self.product, self.beta)
+                        self.run, plantime = dijkstra_plan_networkX_suffix(self.product, self.beta)
 		elif style == 'on-the-fly':
 			# on-the-fly construction
 			self.product.build_initial()

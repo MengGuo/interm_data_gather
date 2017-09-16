@@ -57,6 +57,35 @@ def dijkstra_plan_networkX(product, beta=10):
 	print 'No accepting run found in optimal planning!'
         return None, None
 
+        
+def dijkstra_plan_networkX_suffix(product, beta=10):
+	# requires a full construct of product automaton
+	start = time.time()
+	runs = {}
+	loop = {}
+	# minimal circles
+	for prod_target in product.graph['accept']:
+                #print 'prod_target', prod_target
+                # accepting state in self-loop
+                if prod_target in product.predecessors(prod_target):
+                        loop[prod_target] = (product.edge[prod_target][prod_target]["weight"], [prod_target, prod_target])
+                        continue
+                else:
+                        cycle = {}
+                        loop_pre, loop_dist = dijkstra_predecessor_and_distance(product, prod_target)
+                        for target_pred in product.predecessors_iter(prod_target):
+                                if target_pred in loop_dist:
+                                        cycle[target_pred] = product.edge[target_pred][prod_target]["weight"] + loop_dist[target_pred]
+                                        print 'one suffix found, cost', cycle[target_pred]
+                        if cycle:
+                                opti_pred = min(cycle, key = cycle.get)
+                                suffix = compute_path_from_pre(loop_pre, opti_pred)
+                                loop[prod_target] = (cycle[opti_pred], suffix)
+                                print 'optimal suffix found, cost', cycle[opti_pred]
+	print '=================='        
+	print 'No accepting run found in optimal planning!'
+        return None, None        
+
 
 def dijkstra_plan_optimal(product, beta=10, start_set=None):
 	start = time.time()
