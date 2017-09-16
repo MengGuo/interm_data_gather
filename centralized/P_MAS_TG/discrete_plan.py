@@ -82,6 +82,8 @@ def dijkstra_plan_networkX_suffix(product, beta=10):
                                 suffix = compute_path_from_pre(loop_pre, opti_pred)
                                 loop[prod_target] = (cycle[opti_pred], suffix)
                                 print 'optimal suffix found, cost', cycle[opti_pred]
+                                print '=================='
+		                print 'Dijkstra_plan_networkX_Suffix done within %.2fs: sufcost %.2f' %(time.time()-start, cycle[opti_pred])
 	print '=================='        
 	print 'No accepting run found in optimal planning!'
         return None, None        

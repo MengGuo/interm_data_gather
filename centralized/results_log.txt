@@ -26,8 +26,11 @@ Composed planner initialized  in 0.01
 ====================
 full product constructed with 2560 states and 44608 transitions
 ==================
-Dijkstra_plan_networkX done within 10.90s: precost 55.48, sufcost 54.65
+Dijkstra_plan_networkX done within 10.90s: precost 35.48, sufcost 34.65
 Optimal plan found in 11.56
+====================
+
+
 ******************************
 1 source and 2 relays
 ******************************
@@ -55,6 +58,7 @@ full Buchi constructed with 7 states and 34 transitions
 Composed planner initialized  in 0.08
 ====================
 full product constructed with 313600 states and 22014480 transitions
+'one suffix found, cost', 36.4
 Segmentation fault: 11
 
 
